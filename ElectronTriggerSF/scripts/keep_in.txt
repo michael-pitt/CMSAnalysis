@@ -1,0 +1,18 @@
+# this is a comment
+drop *
+
+#keep event info
+keep run*
+keep event*
+
+#keep objects
+keep Muon*
+keep Electron*
+keep Jet*
+
+#keep trigger objects
+keep HLT_Ele*
+keep HLT_IsoMu*
+#keep HLT_Ele35_WPTight_Gsf
+#keep HLT_Ele28_eta2p1_WPTight_Gsf_HT150
+#keep HLT_Ele30_eta2p1_WPTight_Gsf_CentralPFJet35_EleCleaned

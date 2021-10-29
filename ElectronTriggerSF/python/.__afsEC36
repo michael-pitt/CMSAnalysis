@@ -1,0 +1,98 @@
+#!/usr/bin/env python
+import os, sys
+import ROOT
+ROOT.PyConfig.IgnoreCommandLineOptions = True
+from importlib import import_module
+
+from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
+from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
+
+class Analysis(Module):
+    def __init__(self, channel):
+        self.channel = channel
+        pass
+
+    def beginJob(self):
+        pass
+
+    def endJob(self):
+        pass
+
+    def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
+    
+        self.out = wrappedOutputTree
+        self.out.branch("nano_nJets",     "I");
+        self.out.branch("nano_nElectrons",  "I");
+
+        
+    def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
+        pass
+
+
+    def selectElectrons(self, event):
+        ## access a collection in nanoaod and create a new collection based on this
+
+        event.selectedElectrons = []
+        electrons = Collection(event, "Electron")
+        for el in electrons:
+            isEBEE = True if abs(el.eta)>1.4442 and abs(el.eta)<1.5660 else False
+            if el.pt > 20 and abs(el.eta) < 2.4 and not isEBEE and abs(el.dxy) < 0.05 and abs(el.dz) < 0.2:
+
+                isiso=el.mvaFall17V2Iso_WP80
+                setattr(el, 'isiso', isiso)
+                setattr(el, 'iso', el.pfRelIso03_all)
+                setattr(el, 'id', 11)
+
+                isnoniso_sideband = el.mvaFall17V2noIso_WP80 and not isiso 
+                if not isiso and not isnoniso_sideband : continue
+                event.selectedElectrons.append(el)
+
+        event.selectedElectrons.sort(key=lambda x: x.pt, reverse=True)
+        
+    def selectAK4Jets(self, event):
+        ## Selected jets: pT>25, |eta|<4.7, pass tight ID
+        
+        event.selectedAK4Jets = []
+        ak4jets = Collection(event, "Jet")
+        for j in ak4jets:
+
+            if j.pt<25 : 
+                continue
+
+            if abs(j.eta) > 4.7:
+                continue
+            
+            #require tight (2^1) or tightLepVeto (2^2) [https://twiki.cern.ch/twiki/bin/view/CMS/JetID#nanoAOD_Flags]
+            if j.jetId<2 : 
+                continue
+                
+            #check overlap with selected leptons which are considered to be isolated 
+            #(isiso attribute set by the select{Electrons,Muons} methods
+            deltaR_to_leptons=[ j.p4().DeltaR(lep.p4()) for lep in event.selectedElectrons if lep.isiso ]
+            hasLepOverlap=sum( [dR<0.4 for dR in deltaR_to_leptons] )
+            if hasLepOverlap>0: continue
+
+            event.selectedAK4Jets.append(j)
+            
+        event.selectedAK4Jets.sort(key=lambda x: x.pt, reverse=True)
+
+    def analyze(self, event):
+        """process event, return True (go to next module) or False (fail, go to next event)"""
+        
+        
+        # apply object selection
+#        self.selectMuons(event)
+        self.selectElectrons(event)
+        self.selectAK4Jets(event)
+        
+        if len(event.selectedElectrons)!=1: return False
+                   
+ 
+        ## store branches
+        self.out.fillBranch("nano_nJets" ,      len(event.selectedAK4Jets))
+        self.out.fillBranch("nano_nElectrons",  len(event.selectedElectrons))
+        return True
+
+
+# define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
+analysis_mu  = lambda : Analysis(channel="mu")

@@ -1,0 +1,15 @@
+# this is a comment
+drop *
+
+#keep event info
+keep run*
+keep event*
+
+#keep nanoAOD content
+keep HLT_Ele*
+keep HLT_IsoMu27
+
+#keep custom variables
+keep nano*
+
+
