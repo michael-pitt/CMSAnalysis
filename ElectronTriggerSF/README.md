@@ -26,8 +26,7 @@ inputs:
 - bTagAlgo: DeepJet or DeepCSV
 - btagID: b-tagging working point 0 for loose, 1 for medium and 2 for tight
 
-json luminosity files:
-[combined_RPIN_CMS_LOWMU.json](https://github.com/michael-pitt/PPSTools/blob/main/LowPU2017H/data/combined_RPIN_CMS_LOWMU.json)
+json luminosity files are stored [here](https://github.com/michael-pitt/CMSAnalysis/tree/main/ElectronTriggerSF/data/json)
 
 ### Running on a single file:
 
@@ -44,6 +43,7 @@ example of running on a file from MC sample
 python $CMSSW_BASE/src/CMSAnalysis/ElectronTriggerSF/processors/run_analysis.py \
 output root://cms-xrd-global.cern.ch//store/mc/RunIISummer20UL17NanoAODv9/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/NANOAODSIM/106X_mc2017_realistic_v9-v1/2510000/10C33CC0-846D-134B-99EA-F7E4200E9A48.root \
 --bi scripts/keep_in.txt --bo scripts/keep_and_drop_out.txt -b "DeepCSV" -w 1
+
 ```
 
 ### Submitting to condor
@@ -58,6 +58,6 @@ voms-proxy-init --voms cms --valid 172:00 --out data/voms_proxy.txt
 Then call:
 
 ```
-python scripts/processDataset.py  -i /SingleMuon/Run2017H-UL2017_MiniAODv1_NanoAODv2-v1/NANOAOD -o /eos/user/p/psilva/data/sdanalysis/SingleMuon/Chunks
+python scripts/submit_condor.py -o /eos/user/m/mpitt/PPS_ttbar/ElTrigger -i data/list_samples.txt -s -b \"DeepCSV\" -w 1
 ```
 

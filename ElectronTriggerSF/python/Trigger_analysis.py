@@ -6,6 +6,7 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
+from CMSAnalysis.ElectronTriggerSF.objectSelector import ElectronSelector, MuonSelector
 
 class TriggerAnalysis(Module):
     def __init__(self, year, btagAlgo, btagID):
@@ -47,23 +48,15 @@ class TriggerAnalysis(Module):
         pass
 
 
-    def selectElectrons(self, event):
+    def selectElectrons(self, event, selector):
         ## access a collection in nanoaod and create a new collection based on this
 
         event.selectedElectrons = []
         electrons = Collection(event, "Electron")
         for el in electrons:
-            abseta = abs(el.eta)
-            isEBEE = True if abseta>1.4442 and abseta<1.5660 else False
-            if el.pt < 25 or abseta > 2.4 or isEBEE: continue
-
-            #IP cuts from https://twiki.cern.ch/twiki/bin/view/CMS/CutBasedElectronIdentificationRun2
-            dxy = abs(el.dxy)
-            dz = abs(el.dz)
-            if abseta<1.479 and (dxy>0.05 or dz>0.10): continue
-            elif dxy>0.10 or dz>0.20: continue
+            if not selector.evalElectron(el): continue
             
-            #ID:
+            #ID flags:
             idflag = 0
             if el.mvaFall17V2Iso_WPL:  idflag += (1 << 0)
             if el.mvaFall17V2Iso_WP90: idflag += (1 << 1)
@@ -73,20 +66,21 @@ class TriggerAnalysis(Module):
             if el.cutBased==4: idflag += (1 << 5)
             if not idflag: continue
             setattr(el, 'id', idflag)
-
+            
             event.selectedElectrons.append(el)
-
+        # sort collection
         event.selectedElectrons.sort(key=lambda x: x.pt, reverse=True)
         
 
-    def selectMuons(self, event):
+    def selectMuons(self, event, selector):
         ## access a collection in nanoaod and create a new collection based on this
 
         event.selectedMuons = []
         muons = Collection(event, "Muon")
         for mu in muons:
-            if mu.pt > 30 and abs(mu.eta) < 2.4 and mu.pfRelIso04_all<0.15 and abs(mu.dxy) < 0.5 and abs(mu.dz) < 1.0 and mu.tightId:
+            if selector.evalMuon(mu):
                event.selectedMuons.append(mu)
+        # sort collection
         event.selectedMuons.sort(key=lambda x: x.pt, reverse=True)
 
 
@@ -119,9 +113,13 @@ class TriggerAnalysis(Module):
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
         
+        #initiate selector tools:
+        elSel = ElectronSelector(minPt = 30)
+        muSel = MuonSelector(minPt = 30, id = "tight")
+
         # apply object selection
-        self.selectMuons(event)
-        self.selectElectrons(event)
+        self.selectMuons(event, muSel)
+        self.selectElectrons(event, elSel)
         self.selectAK4Jets(event)
         
         #apply event selection (emu+2 bjets):
