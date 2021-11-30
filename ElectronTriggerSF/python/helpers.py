@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+import math
 
 def ConvertEraToYear(era):
   if '2016' in era: return '2016preVFP'
@@ -39,4 +40,20 @@ def GetEraFromPath(path):
     return ''
   
   else: return '20'+runs[1][:2], False
+  
+def deltaPhi(phi1, phi2):
+
+    res = phi1 - phi2
+    while (res > math.pi):
+        res -= 2 * math.pi
+    while (res <= -math.pi):
+        res += 2 * math.pi
+
+    return res
+    
+def deltaR(o1, o2):
+    return math.sqrt(
+        (o1.eta-o2.eta)**2 +
+        deltaPhi(o1.phi, o2.phi)**2
+    )     
  

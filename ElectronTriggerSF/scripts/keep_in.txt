@@ -9,6 +9,7 @@ keep event*
 keep Muon*
 keep Electron*
 keep Jet*
+keep TrigObj*
 
 #keep trigger objects
 keep HLT_Ele*

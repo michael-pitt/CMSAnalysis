@@ -7,6 +7,7 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
 from CMSAnalysis.ElectronTriggerSF.objectSelector import ElectronSelector, MuonSelector
+from CMSAnalysis.ElectronTriggerSF.helpers import deltaR
 
 class TriggerAnalysis(Module):
     def __init__(self, year, btagAlgo, btagID):
@@ -24,6 +25,7 @@ class TriggerAnalysis(Module):
                       }
         self.bjetWP = self.bjetDeepJetWP[year][btagID] if btagAlgo=='DeepJet' else self.bjetDeepCSVWP[year][btagID]
         self.btagAlgo = btagAlgo
+		
         pass
 
     def beginJob(self):
@@ -36,26 +38,38 @@ class TriggerAnalysis(Module):
     
         self.out = wrappedOutputTree
         self.out.branch("nano_nBJets",     "I");
-        self.out.branch("nano_nJets",      "I");
         self.out.branch("nano_nElectrons", "I");
         self.out.branch("nano_ElID",       "I",  lenVar = "nano_nElectrons");
         self.out.branch("nano_ElPT",       "F",  lenVar = "nano_nElectrons");
         self.out.branch("nano_ElEta",      "F",  lenVar = "nano_nElectrons");
+        self.out.branch("nano_ElMatch",    "O",  lenVar = "nano_nElectrons");
         self.out.branch("nano_HT" ,        "F");
+        self.out.branch("nano_nJets",      "I");
+        self.out.branch("nano_JetPT",      "F",  lenVar = "nano_nJets");
+        self.out.branch("nano_JetEta",     "F",  lenVar = "nano_nJets");
 
         
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
 
-
-    def selectElectrons(self, event, selector):
+    def triggerMatched(self, object, trigger_objects, type, dR = 0.3):
+        for trig_obj in trigger_objects:
+            if abs(trig_obj.id) != type: continue
+            if deltaR(object,trig_obj) < dR: return True
+        return False
+	
+    def selectElectrons(self, event, selector, triggerObjects):
         ## access a collection in nanoaod and create a new collection based on this
 
         event.selectedElectrons = []
         electrons = Collection(event, "Electron")
         for el in electrons:
             if not selector.evalElectron(el): continue
-            
+            		
+            #trigger matching
+            isMatched = self.triggerMatched(el, triggerObjects, 11)
+            setattr(el, 'trigMatch', isMatched) 
+			
             #ID flags:
             idflag = 0
             if el.mvaFall17V2Iso_WPL:  idflag += (1 << 0)
@@ -98,7 +112,7 @@ class TriggerAnalysis(Module):
                 continue
             
             #require tight (2^1) or tightLepVeto (2^2) [https://twiki.cern.ch/twiki/bin/view/CMS/JetID#nanoAOD_Flags]
-            if j.jetId<2 : 
+            if j.jetId<4 :   # tight PU ID and tight Lep Veto
                 continue
                 
             #check overlap with selected leptons which are considered to be isolated 
@@ -112,32 +126,42 @@ class TriggerAnalysis(Module):
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
-        
+		
         #initiate selector tools:
+        triggerObjects = Collection(event, "TrigObj")
         elSel = ElectronSelector(minPt = 30)
         muSel = MuonSelector(minPt = 30, id = "tight")
 
         # apply object selection
         self.selectMuons(event, muSel)
-        self.selectElectrons(event, elSel)
+        self.selectElectrons(event, elSel, triggerObjects)
         self.selectAK4Jets(event)
-        
-        #apply event selection (emu+2 bjets):
+		       
+        #apply event pre-selection (emu (OS), muon trigger matched, >=1 bjet):
         if len(event.selectedMuons)!=1: return False
-        if len(event.selectedElectrons)==0: return False
+        if len(event.selectedElectrons)!=1: return False
+		
+        #trigger matching
+        if not self.triggerMatched(event.selectedMuons[0], triggerObjects, 13): return False
         
+        #OS leptons
+        if event.selectedElectrons[0].charge==event.selectedMuons[0].charge: return False
+		
         if len(event.selectedAK4Jets)<2: return False
         nbjets=0; ht=0
         for jet in event.selectedAK4Jets:
           ht+=jet.pt
           flabtag = jet.btagDeepFlavB if self.btagAlgo=='DeepJet' else jet.btagDeepB
           if flabtag > self.bjetWP: nbjets+=1
-        #if nbjets<2: return False
+        if nbjets<1: return False
         
         ## store branches
         el_id=[el.id for el in event.selectedElectrons]
         el_pt=[el.pt for el in event.selectedElectrons]
         el_eta=[el.eta for el in event.selectedElectrons]
+        el_match=[el.trigMatch for el in event.selectedElectrons]
+        jet_pt=[jet.pt for jet in event.selectedAK4Jets]
+        jet_eta=[jet.eta for jet in event.selectedAK4Jets]
         
         self.out.fillBranch("nano_nJets" ,    len(event.selectedAK4Jets))
         self.out.fillBranch("nano_nBJets",    nbjets)
@@ -145,6 +169,9 @@ class TriggerAnalysis(Module):
         self.out.fillBranch("nano_ElID" ,     el_id)
         self.out.fillBranch("nano_ElPT" ,     el_pt)
         self.out.fillBranch("nano_ElEta" ,    el_eta)
+        self.out.fillBranch("nano_ElMatch",   el_match)
+        self.out.fillBranch("nano_JetPT" ,    jet_pt)
+        self.out.fillBranch("nano_JetEta",    jet_eta)
         self.out.fillBranch("nano_HT" ,       ht)
 
         return True
