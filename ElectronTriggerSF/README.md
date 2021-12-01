@@ -52,7 +52,7 @@ To submit condor jobs for an entire data set.
 Start a local proxy under the data directory:
 
 ```
-voms-proxy-init --voms cms --valid 172:00 --out data/voms_proxy.txt
+voms-proxy-init --voms cms --valid 172:00 --out FarmLocalNtuple/myproxy509
 ```
 
 Then call:

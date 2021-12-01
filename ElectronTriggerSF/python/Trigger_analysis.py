@@ -40,6 +40,7 @@ class TriggerAnalysis(Module):
         self.out.branch("nano_nBJets",     "I");
         self.out.branch("nano_nElectrons", "I");
         self.out.branch("nano_ElID",       "I",  lenVar = "nano_nElectrons");
+        self.out.branch("nano_ElQ",        "I",  lenVar = "nano_nElectrons");
         self.out.branch("nano_ElPT",       "F",  lenVar = "nano_nElectrons");
         self.out.branch("nano_ElEta",      "F",  lenVar = "nano_nElectrons");
         self.out.branch("nano_ElMatch",    "O",  lenVar = "nano_nElectrons");
@@ -66,6 +67,10 @@ class TriggerAnalysis(Module):
         for el in electrons:
             if not selector.evalElectron(el): continue
             		
+            deltaR_to_leptons=[ el.p4().DeltaR(lep.p4()) for lep in event.selectedMuons+event.selectedElectrons  ]
+            hasLepOverlap=sum( [dR<0.4 for dR in deltaR_to_leptons] )
+            if hasLepOverlap>0: continue
+
             #trigger matching
             isMatched = self.triggerMatched(el, triggerObjects, 11)
             setattr(el, 'trigMatch', isMatched) 
@@ -92,8 +97,13 @@ class TriggerAnalysis(Module):
         event.selectedMuons = []
         muons = Collection(event, "Muon")
         for mu in muons:
-            if selector.evalMuon(mu):
-               event.selectedMuons.append(mu)
+            if not selector.evalMuon(mu): continue
+			
+            deltaR_to_muons=[ mu.p4().DeltaR(lep.p4()) for lep in event.selectedMuons  ]
+            hasLepOverlap=sum( [dR<0.4 for dR in deltaR_to_muons] )
+            if hasLepOverlap>0: continue
+            
+            event.selectedMuons.append(mu)
         # sort collection
         event.selectedMuons.sort(key=lambda x: x.pt, reverse=True)
 
@@ -129,7 +139,7 @@ class TriggerAnalysis(Module):
 		
         #initiate selector tools:
         triggerObjects = Collection(event, "TrigObj")
-        elSel = ElectronSelector(minPt = 30)
+        elSel = ElectronSelector(minPt = 25)
         muSel = MuonSelector(minPt = 30, id = "tight")
 
         # apply object selection
@@ -156,6 +166,7 @@ class TriggerAnalysis(Module):
         if nbjets<1: return False
         
         ## store branches
+        el_q=[el.charge for el in event.selectedElectrons]
         el_id=[el.id for el in event.selectedElectrons]
         el_pt=[el.pt for el in event.selectedElectrons]
         el_eta=[el.eta for el in event.selectedElectrons]
@@ -167,6 +178,7 @@ class TriggerAnalysis(Module):
         self.out.fillBranch("nano_nBJets",    nbjets)
         self.out.fillBranch("nano_nElectrons",len(event.selectedElectrons))
         self.out.fillBranch("nano_ElID" ,     el_id)
+        self.out.fillBranch("nano_ElQ" ,      el_q)
         self.out.fillBranch("nano_ElPT" ,     el_pt)
         self.out.fillBranch("nano_ElEta" ,    el_eta)
         self.out.fillBranch("nano_ElMatch",   el_match)
