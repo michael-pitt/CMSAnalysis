@@ -26,7 +26,7 @@ def getDatasetComponents(dataset):
     """ query components of the dataset """
 
     #get files in the dataset
-    print 'Querying',dataset
+    print 'Querying',dataset,
     p = subprocess.Popen(['dasgoclient --query=\"file dataset=%s\"'%dataset],
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
@@ -35,7 +35,7 @@ def getDatasetComponents(dataset):
 
     dataset_files=out.split()
     nfiles=len(dataset_files)
-    print 'I have %d jobs to submit'%nfiles
+    print '- Found %d files'%nfiles
 
     return dataset_files
 
@@ -75,11 +75,16 @@ def buildCondorFile(opt,FarmDirectory):
         for ds in datasets:       
             fList = getDatasetComponents(ds)
             outDir = opt.output+"/"+datasets[ds]
+            if not os.path.isdir(outDir):
+              print('mkdir '+outDir)
+              os.mkdir(outDir)
             for i in range(len(fList)):
                 filename=fList[i].split("/")[-1].split(".")[0]
                 outfile='%s/%s_Skim.root'%(outDir,filename)
-                print ('arguments = %s %s\n'%(fList[i],outDir))
-                if os.path.isfile(outfile): print('file %s exists'%outfile); continue
+                #print ('arguments = %s %s\n'%(fList[i],outDir))
+                if os.path.isfile(outfile): 
+                    #print('file %s exists'%outfile); 
+                    continue
                 condor.write('arguments = %s %s\n'%(fList[i],outDir))
                 condor.write('queue 1\n')
 
