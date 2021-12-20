@@ -62,6 +62,13 @@ python scripts/submit_condor.py -o /eos/user/m/mpitt/PPS_ttbar/ElTrigger -i data
 ```
 ## Results
 
+Before producing results, hadd all file using 
+```
+python $CMSSW_BASE/src/PhysicsTools/NanoAODTools/scripts/haddnano.py folder.root folder/*root
+```
+
+### Plotting scripts
+
 Several scripts can be found under `ElectronTriggerSF/scripts` that are used to extract SF and making control plots.
 
    * Plot1DSF.cc: Ploting 1D SF as a function of a single variable
