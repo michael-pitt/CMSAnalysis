@@ -40,7 +40,7 @@ if __name__ == "__main__":
     #get input data
     era, isData = GetEraFromPath(args[0])
     year = ConvertEraToYear(era)
-    cut = GetMuonTriggerFromEra(era) # if isData else None
+    cut = GetMuonTriggerFromEra(era) if isData else None
     json = cmssw+'/src/CMSAnalysis/ElectronTriggerSF/data/json/'+GetJSON(era) if isData else None
     branches_in = opt.branchsel_in
     branches_out = opt.branchsel_out

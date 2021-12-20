@@ -38,6 +38,8 @@ class TriggerAnalysis(Module):
     
         self.out = wrappedOutputTree
         self.out.branch("nano_nBJets",     "I");
+        self.out.branch("nano_nMuons", "I");
+        self.out.branch("nano_MuMatch",    "O",  lenVar = "nano_nMuons");
         self.out.branch("nano_nElectrons", "I");
         self.out.branch("nano_ElID",       "I",  lenVar = "nano_nElectrons");
         self.out.branch("nano_ElQ",        "I",  lenVar = "nano_nElectrons");
@@ -102,6 +104,10 @@ class TriggerAnalysis(Module):
             deltaR_to_muons=[ mu.p4().DeltaR(lep.p4()) for lep in event.selectedMuons  ]
             hasLepOverlap=sum( [dR<0.4 for dR in deltaR_to_muons] )
             if hasLepOverlap>0: continue
+
+            #trigger matching
+            isMatched = self.triggerMatched(mu, triggerObjects, 13)
+            setattr(mu, 'trigMatch', isMatched)
             
             event.selectedMuons.append(mu)
         # sort collection
@@ -122,7 +128,7 @@ class TriggerAnalysis(Module):
                 continue
             
             #require tight (2^1) or tightLepVeto (2^2) [https://twiki.cern.ch/twiki/bin/view/CMS/JetID#nanoAOD_Flags]
-            if j.jetId<4 :   # tight PU ID and tight Lep Veto
+            if j.jetId<2 :   # tight PU ID and tight Lep Veto
                 continue
                 
             #check overlap with selected leptons which are considered to be isolated 
@@ -166,6 +172,7 @@ class TriggerAnalysis(Module):
         if nbjets<1: return False
         
         ## store branches
+        mu_match=[mu.trigMatch for mu in event.selectedMuons]
         el_q=[el.charge for el in event.selectedElectrons]
         el_id=[el.id for el in event.selectedElectrons]
         el_pt=[el.pt for el in event.selectedElectrons]
@@ -176,6 +183,8 @@ class TriggerAnalysis(Module):
         
         self.out.fillBranch("nano_nJets" ,    len(event.selectedAK4Jets))
         self.out.fillBranch("nano_nBJets",    nbjets)
+        self.out.fillBranch("nano_nMuons",len(event.selectedMuons))
+        self.out.fillBranch("nano_MuMatch",   mu_match)
         self.out.fillBranch("nano_nElectrons",len(event.selectedElectrons))
         self.out.fillBranch("nano_ElID" ,     el_id)
         self.out.fillBranch("nano_ElQ" ,      el_q)

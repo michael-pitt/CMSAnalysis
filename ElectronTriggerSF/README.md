@@ -60,4 +60,14 @@ Then call:
 ```
 python scripts/submit_condor.py -o /eos/user/m/mpitt/PPS_ttbar/ElTrigger -i data/list_samples.txt -s -b \"DeepCSV\" -w 1
 ```
+## Results
+
+Several scripts can be found under `ElectronTriggerSF/scripts` that are used to extract SF and making control plots.
+
+   * Plot1DSF.cc: Ploting 1D SF as a function of a single variable
+   * Plot1DSFsys.cc: Ploting 1D SF as a function of a single variable for different event selection
+   * Plot1DSFRun.cc: Ploting 1D SF as a function of a single variable for different run conditions
+   * To product final plot of SF and write corresponding file run `root -l -b -q 'Plot2DSF_final.cc("")'`
+   * PrintCorrelation.cc - used to plot correlation factor
+   * PrintFractions.cc - used to plot lumi-based fractions and SFs
 
