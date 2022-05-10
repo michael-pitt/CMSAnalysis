@@ -93,7 +93,7 @@ class TriggerAnalysis(Module):
         event.selectedElectrons.sort(key=lambda x: x.pt, reverse=True)
         
 
-    def selectMuons(self, event, selector):
+    def selectMuons(self, event, selector, triggerObjects):
         ## access a collection in nanoaod and create a new collection based on this
 
         event.selectedMuons = []
@@ -149,7 +149,7 @@ class TriggerAnalysis(Module):
         muSel = MuonSelector(minPt = 30, id = "tight")
 
         # apply object selection
-        self.selectMuons(event, muSel)
+        self.selectMuons(event, muSel, triggerObjects)
         self.selectElectrons(event, elSel, triggerObjects)
         self.selectAK4Jets(event)
 		       
