@@ -7,6 +7,7 @@
 /SingleMuon/Run2016F-UL2016_MiniAODv2_NanoAODv9-v1/NANOAOD SingleMuon_Run2016F
 /SingleMuon/Run2016G-UL2016_MiniAODv2_NanoAODv9-v1/NANOAOD SingleMuon_Run2016G
 /SingleMuon/Run2016H-UL2016_MiniAODv2_NanoAODv9-v1/NANOAOD SingleMuon_Run2016H
+/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8-2016
 /TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8-2016
 # 2017 files
 /SingleMuon/Run2017B-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD SingleMuon_Run2017B
@@ -14,10 +15,12 @@
 /SingleMuon/Run2017D-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD SingleMuon_Run2017D
 /SingleMuon/Run2017E-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD SingleMuon_Run2017E
 /SingleMuon/Run2017F-UL2017_MiniAODv2_NanoAODv9-v1/NANOAOD SingleMuon_Run2017F
+/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8-2017
 /TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL17NanoAODv9-106X_mc2017_realistic_v9-v1/NANOAODSIM TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8-2017
 # 2018 files
 /SingleMuon/Run2018A-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD SingleMuon_Run2018A
 /SingleMuon/Run2018B-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD SingleMuon_Run2018B
 /SingleMuon/Run2018C-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD SingleMuon_Run2018C
 /SingleMuon/Run2018D-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD SingleMuon_Run2018D
+/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8-2018
 /TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8-2018
